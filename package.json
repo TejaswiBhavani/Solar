@@ -38,6 +38,5 @@
     "vite": "^7.1.2"
   },
   "devDependencies": {
-    "@types/animejs": "^3.1.13"
   }
 }

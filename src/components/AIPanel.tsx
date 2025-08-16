@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import anime from 'animejs';
+// Note: anime.js v4 has a different API - imports temporarily removed
+// import { createAnimatable, stagger } from 'animejs';
 
 interface AIPanelProps {
   isVisible: boolean;
@@ -18,7 +19,7 @@ const AIPanel: React.FC<AIPanelProps> = ({
   const [results, setResults] = useState<string>('');
   const [stats, setStats] = useState<any>(null);
   const [askInput, setAskInput] = useState('');
-  const [lastGeneratedLog, setLastGeneratedLog] = useState('');
+
   const panelRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
 
@@ -27,14 +28,21 @@ const AIPanel: React.FC<AIPanelProps> = ({
 
   useEffect(() => {
     if (isVisible && panelRef.current) {
-      // Panel entrance animation
-      anime.set('.panel-child', { opacity: 0, translateY: 10 });
-      anime({ 
-        targets: '.panel-child', 
+      // Panel entrance animation  
+      // Note: anime.js v4 API has changed significantly
+      // TODO: Update animation code to work with anime.js v4
+      /*
+      createAnimatable('.panel-child', { 
+        opacity: 0, 
+        translateY: 10,
+        duration: 0
+      });
+      createAnimatable('.panel-child', { 
         opacity: [0, 1], 
         translateY: [10, 0], 
-        delay: anime.stagger(100, { start: 200 }) 
+        delay: stagger(100, { start: 200 }) 
       });
+      */
     }
   }, [isVisible]);
 
@@ -83,7 +91,6 @@ const AIPanel: React.FC<AIPanelProps> = ({
     const result = await callApi(apiUrl, payload, e.currentTarget);
     
     if (result && result.candidates?.[0]?.content?.parts?.[0]?.text) {
-      setLastGeneratedLog(result.candidates[0].content.parts[0].text);
       setResults(result.candidates[0].content.parts[0].text.replace(/\n/g, '<br>'));
     }
   };
@@ -96,7 +103,6 @@ const AIPanel: React.FC<AIPanelProps> = ({
     
     if (result && result.candidates?.[0]?.content?.parts?.[0]?.text) {
       const logText = result.candidates[0].content.parts[0].text;
-      setLastGeneratedLog(logText);
       setResults(`${logText.replace(/\n/g, '<br>')} <button id="read-aloud-btn" class="gemini-btn mt-4">🔊 Read Aloud</button>`);
     }
   };
@@ -147,7 +153,6 @@ const AIPanel: React.FC<AIPanelProps> = ({
     const result = await callApi(apiUrl, payload);
     
     if (result && result.candidates?.[0]?.content?.parts?.[0]?.text) {
-      setLastGeneratedLog(result.candidates[0].content.parts[0].text);
       setResults(result.candidates[0].content.parts[0].text.replace(/\n/g, '<br>'));
     }
     setAskInput('');
