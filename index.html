@@ -29,28 +29,6 @@
 
     <div id="root"></div>
     
-    <!-- WebGL detection script -->
-    <script>
-      (function() {
-        function checkWebGL() {
-          try {
-            // Create a temporary canvas for testing, not interfering with the main one
-            var testCanvas = document.createElement('canvas');
-            var gl = testCanvas.getContext('webgl') || testCanvas.getContext('experimental-webgl');
-            testCanvas.remove(); // Clean up
-            return !!gl;
-          } catch (e) {
-            return false;
-          }
-        }
-        
-        if (!checkWebGL()) {
-          document.getElementById('webgl-fallback').style.display = 'flex';
-          document.getElementById('root').style.display = 'none';
-        }
-      })();
-    </script>
-    
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

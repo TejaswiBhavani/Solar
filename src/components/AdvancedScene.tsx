@@ -42,11 +42,25 @@ const AdvancedScene: React.FC<AdvancedSceneProps> = ({ onPlanetFocus }) => {
     // Scene setup
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 4000);
-    const renderer = new THREE.WebGLRenderer({
-      canvas: canvasRef.current,
-      alpha: true,
-      antialias: true
-    });
+    
+    let renderer;
+    try {
+      renderer = new THREE.WebGLRenderer({
+        canvas: canvasRef.current,
+        alpha: true,
+        antialias: true
+      });
+    } catch (error) {
+      console.error('WebGL not supported:', error);
+      // Show WebGL fallback
+      const fallback = document.getElementById('webgl-fallback');
+      const root = document.getElementById('root');
+      if (fallback && root) {
+        fallback.style.display = 'flex';
+        root.style.display = 'none';
+      }
+      return;
+    }
 
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
