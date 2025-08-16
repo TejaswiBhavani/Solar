@@ -18,6 +18,19 @@
 }
 
 @layer components {
+  /* Content sections for scroll triggers */
+  .content-section {
+    position: relative;
+    z-index: 1;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 2rem;
+  }
+
   /* Glass card effect */
   .glass-card {
     background: rgba(255, 255, 255, 0.05);
