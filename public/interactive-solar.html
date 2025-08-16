@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive 3D Solar System | Three.js & GSAP</title>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #000000;
+            color: #F9FAFB;
+            overflow-x: hidden;
+            margin: 0;
+        }
+        body.free-roam-active {
+            cursor: grab;
+        }
+        #solar-system-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            outline: none;
+            z-index: -1;
+        }
+        .content-section {
+            position: relative;
+            z-index: 1;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 2rem;
+            opacity: 1;
+        }
+        .intro-title {
+            font-size: 3rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: -0.05em;
+            text-shadow: 0 0 20px currentColor;
+            margin-bottom: 1.5rem;
+            color: #fff;
+        }
+        .intro-subtitle {
+            font-size: 1.125rem;
+            color: #9ca3af;
+            margin-top: 1rem;
+            max-width: 48rem;
+        }
+        .gemini-btn, #camera-toggle {
+            cursor: pointer;
+            background-color: #4f46e5;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            margin-top: 1rem;
+            transition: background-color 0.3s, transform 0.3s;
+            font-size: 0.875rem;
+            border: none;
+        }
+        .gemini-btn:hover {
+            background-color: #6366f1;
+            transform: scale(1.05);
+        }
+        #camera-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 101;
+        }
+        #open-panel-btn {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 99;
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            background-image: linear-gradient(to right, #6366f1, #8b5cf6);
+            box-shadow: 0 10px 20px rgba(139, 92, 246, 0.3);
+            border: none;
+        }
+        #panel-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 99;
+            opacity: 0;
+            pointer-events: none;
+            backdrop-filter: blur(5px);
+            transition: opacity 0.3s;
+        }
+        #info-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            z-index: 100;
+            background-color: rgba(17, 24, 39, 0.9);
+            padding: 1.5rem;
+            border-right: 1px solid #374151;
+            width: 380px;
+            transform: translateX(-100%);
+            transition: transform 0.5s ease-in-out;
+        }
+        #info-panel.visible {
+            transform: translateX(0);
+        }
+        #close-panel-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            color: #9ca3af;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        #close-panel-btn:hover {
+            color: white;
+        }
+        .panel-child {
+            margin-bottom: 1rem;
+        }
+        .results-container, #stats-container {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: #111827;
+            border-radius: 0.5rem;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .input-group {
+            display: flex;
+            margin-top: 1rem;
+            width: 100%;
+        }
+        .input-group input {
+            flex-grow: 1;
+            background-color: #1f2937;
+            border: 1px solid #4b5563;
+            color: white;
+            padding: 0.5rem;
+            border-radius: 9999px 0 0 9999px;
+            font-size: 0.875rem;
+        }
+        .input-group input::placeholder {
+            color: #9ca3af;
+        }
+        .input-group button {
+            border-radius: 0 9999px 9999px 0;
+            padding: 0.5rem 1rem;
+            margin-top: 0;
+        }
+        .hidden {
+            display: none;
+        }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4f46e5;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            margin: 1rem auto 0;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .planet-info {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            pointer-events: none;
+            z-index: 10;
+        }
+        .planet-name {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+        .planet-desc {
+            font-size: 1.125rem;
+            color: #d1d5db;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+        }
+        
+        /* Responsive styles */
+        @media (min-width: 768px) {
+            .intro-title {
+                font-size: 5rem;
+            }
+            .intro-subtitle {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="solar-system-canvas"></canvas>
+    
+    <button id="camera-toggle" class="gemini-btn">🛰️ Free-Roam</button>
+    <button id="open-panel-btn" class="gemini-btn">✨ Ask Me Anything</button>
+
+    <div id="panel-overlay"></div>
+    <div id="info-panel">
+        <button id="close-panel-btn">&times;</button>
+        <h2 id="planet-title" style="font-size: 1.875rem; font-weight: 700; margin-bottom: 0.5rem;"></h2>
+        <p id="planet-description" style="color: #9ca3af; margin-bottom: 1rem;"></p>
+        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;">
+            <button class="gemini-btn" id="get-facts-btn">✨ Facts</button>
+            <button class="gemini-btn" id="get-log-btn">📜 Log</button>
+            <button class="gemini-btn" id="get-image-btn">🎨 Image</button>
+            <button class="gemini-btn" id="get-stats-btn">📊 Stats</button>
+        </div>
+        <div class="input-group panel-child">
+            <input type="text" id="ask-input" placeholder="Ask anything...">
+            <button class="gemini-btn" id="ask-btn">Ask</button>
+        </div>
+        <div class="loader hidden panel-child"></div>
+        <div id="stats-container" class="hidden panel-child"></div>
+        <div class="results-container hidden panel-child"></div>
+    </div>
+
+    <main>
+        <section class="content-section" data-planet="sun" data-description="The star at the center of our solar system.">
+            <div class="planet-info">
+                <h1 class="planet-name">☀️ Sun</h1>
+                <p class="planet-desc">The star at the center of our solar system</p>
+            </div>
+        </section>
+        <section class="content-section" data-planet="mercury" data-description="The smallest and innermost planet.">
+            <div class="planet-info">
+                <h1 class="planet-name">☿️ Mercury</h1>
+                <p class="planet-desc">The smallest and innermost planet</p>
+            </div>
+        </section>
+        <section class="content-section" data-planet="venus" data-description="Earth's 'sister planet' due to their similar size.">
+            <div class="planet-info">
+                <h1 class="planet-name">♀️ Venus</h1>
+                <p class="planet-desc">Earth's 'sister planet' due to their similar size</p>
+            </div>
+        </section>
+        <section class="content-section" data-planet="earth" data-description="Our home, the only place known to harbor life.">
+            <div class="planet-info">
+                <h1 class="planet-name">🌍 Earth</h1>
+                <p class="planet-desc">Our home, the only place known to harbor life</p>
+            </div>
+        </section>
+        <section class="content-section" data-planet="mars" data-description="The 'Red Planet,' known for its iron oxide surface.">
+            <div class="planet-info">
+                <h1 class="planet-name">♂️ Mars</h1>
+                <p class="planet-desc">The 'Red Planet,' known for its iron oxide surface</p>
+            </div>
+        </section>
+        <section class="content-section" data-planet="jupiter" data-description="The largest planet, a gas giant with a Great Red Spot.">
+            <div class="planet-info">
+                <h1 class="planet-name">♃ Jupiter</h1>
+                <p class="planet-desc">The largest planet, a gas giant with a Great Red Spot</p>
+            </div>
+        </section>
+        <section class="content-section" data-planet="saturn" data-description="Known for its extensive and beautiful ring system.">
+            <div class="planet-info">
+                <h1 class="planet-name">♄ Saturn</h1>
+                <p class="planet-desc">Known for its extensive and beautiful ring system</p>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Basic 3D Solar System with WebGL ---
+            const canvas = document.getElementById('solar-system-canvas');
+            const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+            
+            if (!gl) {
+                console.error('WebGL not supported');
+                return;
+            }
+
+            // Resize canvas
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                gl.viewport(0, 0, canvas.width, canvas.height);
+            }
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+
+            // Simple 3D solar system simulation
+            let currentPlanet = 0;
+            let isFreeRoam = false;
+            let mouse = { x: 0, y: 0 };
+            let time = 0;
+
+            // Planet data
+            const planets = [
+                { name: 'Sun', color: [1.0, 0.8, 0.2], size: 20, distance: 0, speed: 0.1 },
+                { name: 'Mercury', color: [0.5, 0.5, 0.5], size: 2, distance: 40, speed: 0.8 },
+                { name: 'Venus', color: [1.0, 0.6, 0.2], size: 3, distance: 60, speed: 0.6 },
+                { name: 'Earth', color: [0.2, 0.6, 1.0], size: 3.2, distance: 80, speed: 0.5 },
+                { name: 'Mars', color: [1.0, 0.3, 0.2], size: 2.5, distance: 100, speed: 0.4 },
+                { name: 'Jupiter', color: [0.8, 0.7, 0.5], size: 8, distance: 140, speed: 0.2 },
+                { name: 'Saturn', color: [0.9, 0.8, 0.6], size: 7, distance: 180, speed: 0.15 }
+            ];
+
+            // Simple animation loop
+            function animate() {
+                time += 0.01;
+                
+                // Clear canvas with starfield effect
+                gl.clearColor(0.02, 0.02, 0.1, 1.0);
+                gl.clear(gl.COLOR_BUFFER_BIT);
+                
+                // Simple star background
+                drawStars();
+                
+                // Draw planets
+                planets.forEach((planet, index) => {
+                    const angle = time * planet.speed;
+                    const x = Math.cos(angle) * planet.distance;
+                    const y = Math.sin(angle) * planet.distance * 0.3; // Flatten orbits
+                    drawPlanet(x, y, planet.size, planet.color, index === currentPlanet);
+                });
+
+                requestAnimationFrame(animate);
+            }
+
+            function drawStars() {
+                // Simple star effect using WebGL points
+                for (let i = 0; i < 200; i++) {
+                    const x = (Math.random() - 0.5) * 4;
+                    const y = (Math.random() - 0.5) * 4;
+                    const brightness = Math.random() * 0.5 + 0.5;
+                    drawPoint(x, y, [brightness, brightness, brightness]);
+                }
+            }
+
+            function drawPlanet(x, y, size, color, isActive) {
+                const scale = isActive ? size * 1.5 : size;
+                const alpha = isActive ? 1.0 : 0.8;
+                
+                // Scale coordinates to canvas
+                const canvasX = (x / 200) * canvas.width / 2 + canvas.width / 2;
+                const canvasY = (y / 200) * canvas.height / 2 + canvas.height / 2;
+                
+                // Draw planet as a circle (simplified)
+                drawCircle(canvasX, canvasY, scale, [...color, alpha]);
+            }
+
+            function drawCircle(x, y, radius, color) {
+                // Simple circle drawing using WebGL (simplified implementation)
+                const centerX = (x / canvas.width) * 2 - 1;
+                const centerY = -((y / canvas.height) * 2 - 1);
+                
+                // For simplicity, just change the clear color based on active planet
+                if (currentPlanet >= 0 && currentPlanet < planets.length) {
+                    const planet = planets[currentPlanet];
+                    gl.clearColor(planet.color[0] * 0.1, planet.color[1] * 0.1, planet.color[2] * 0.1, 1.0);
+                }
+            }
+
+            function drawPoint(x, y, color) {
+                // Simplified point drawing
+            }
+
+            // --- UI and Interaction Logic ---
+            const sections = document.querySelectorAll('.content-section');
+            const panelOverlay = document.getElementById('panel-overlay');
+            const infoPanel = document.getElementById('info-panel');
+            const openPanelBtn = document.getElementById('open-panel-btn');
+            const closePanelBtn = document.getElementById('close-panel-btn');
+            const planetTitle = document.getElementById('planet-title');
+            const planetDescription = document.getElementById('planet-description');
+            const resultsContainer = document.querySelector('.results-container');
+            const statsContainer = document.getElementById('stats-container');
+            const loader = document.querySelector('.loader');
+
+            let activePlanetName = '';
+
+            // Scroll handling
+            let lastScrollY = window.scrollY;
+            
+            function handleScroll() {
+                if (isFreeRoam) return;
+                
+                const scrollY = window.scrollY;
+                const sectionIndex = Math.floor(scrollY / window.innerHeight);
+                const clampedIndex = Math.max(0, Math.min(sectionIndex, sections.length - 1));
+                
+                if (clampedIndex !== currentPlanet) {
+                    currentPlanet = clampedIndex;
+                    focusOnPlanet(sections[currentPlanet].dataset.planet, sections[currentPlanet].dataset.description);
+                }
+            }
+
+            function focusOnPlanet(planetName, description) {
+                activePlanetName = planetName.charAt(0).toUpperCase() + planetName.slice(1);
+                
+                // Update panel info
+                planetTitle.textContent = activePlanetName;
+                planetDescription.textContent = description;
+                
+                // Update Ask input placeholder
+                const askInput = document.getElementById('ask-input');
+                askInput.placeholder = `Ask anything about ${activePlanetName}...`;
+
+                // Show panel button
+                openPanelBtn.style.opacity = '1';
+                openPanelBtn.style.pointerEvents = 'auto';
+
+                // Simple starfield pulse effect
+                const starElements = document.querySelectorAll('.planet-info');
+                starElements.forEach(el => {
+                    el.style.animation = 'none';
+                    setTimeout(() => {
+                        el.style.animation = 'pulse 1s ease-in-out';
+                    }, 10);
+                });
+            }
+
+            // Event listeners
+            window.addEventListener('scroll', handleScroll);
+            handleScroll(); // Initial call
+
+            function showPanel() {
+                infoPanel.classList.add('visible');
+                panelOverlay.style.opacity = '1';
+                panelOverlay.style.pointerEvents = 'auto';
+            }
+
+            function hidePanel() {
+                infoPanel.classList.remove('visible');
+                panelOverlay.style.opacity = '0';
+                panelOverlay.style.pointerEvents = 'none';
+            }
+
+            openPanelBtn.addEventListener('click', showPanel);
+            closePanelBtn.addEventListener('click', hidePanel);
+            panelOverlay.addEventListener('click', hidePanel);
+
+            document.getElementById('camera-toggle').addEventListener('click', (e) => {
+                isFreeRoam = !isFreeRoam;
+                e.currentTarget.textContent = isFreeRoam ? '📜 Guided Tour' : '🛰️ Free-Roam';
+                document.body.classList.toggle('free-roam-active', isFreeRoam);
+                document.body.style.overflow = isFreeRoam ? 'hidden' : 'auto';
+            });
+
+            window.addEventListener('mousemove', (event) => {
+                if (isFreeRoam) {
+                    mouse.x = (event.clientX / window.innerWidth) - 0.5;
+                    mouse.y = (event.clientY / window.innerHeight) - 0.5;
+                }
+            });
+
+            // Gemini API Integration
+            const apiKey = "";
+
+            async function callApi(apiUrl, payload, buttonElement) {
+                loader.classList.remove('hidden');
+                resultsContainer.classList.add('hidden');
+                statsContainer.classList.add('hidden');
+                buttonElement.disabled = true;
+                const originalText = buttonElement.innerHTML;
+                buttonElement.innerHTML = '⏳';
+
+                try {
+                    if (!apiKey) {
+                        throw new Error('API key not configured. Please add your Gemini API key to enable this feature.');
+                    }
+                    const response = await fetch(apiUrl, { 
+                        method: 'POST', 
+                        headers: { 'Content-Type': 'application/json' }, 
+                        body: JSON.stringify(payload) 
+                    });
+                    if (!response.ok) throw new Error(`API Error: ${response.statusText}`);
+                    return await response.json();
+                } catch (error) {
+                    console.error('Error calling Gemini API:', error);
+                    resultsContainer.innerHTML = `<div style="color: #ef4444;">${error.message}</div>`;
+                    resultsContainer.classList.remove('hidden');
+                    return null;
+                } finally {
+                    loader.classList.add('hidden');
+                    buttonElement.disabled = false;
+                    buttonElement.innerHTML = originalText;
+                }
+            }
+
+            // API button handlers
+            document.getElementById('get-facts-btn').addEventListener('click', async (e) => {
+                const prompt = `Tell me three interesting and little-known fun facts about ${activePlanetName}.`;
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
+                const result = await callApi(apiUrl, payload, e.currentTarget);
+                if (result && result.candidates?.[0]?.content?.parts?.[0]?.text) {
+                    resultsContainer.innerHTML = result.candidates[0].content.parts[0].text.replace(/\n/g, '<br>');
+                    resultsContainer.classList.remove('hidden');
+                }
+            });
+
+            document.getElementById('get-log-btn').addEventListener('click', async (e) => {
+                const prompt = `Write a creative, fictional captain's log entry from a spaceship that has just arrived at ${activePlanetName}. Make it atmospheric and brief (around 100 words).`;
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
+                const result = await callApi(apiUrl, payload, e.currentTarget);
+                if (result && result.candidates?.[0]?.content?.parts?.[0]?.text) {
+                    const logText = result.candidates[0].content.parts[0].text;
+                    resultsContainer.innerHTML = `${logText.replace(/\n/g, '<br>')} <button id="read-aloud-btn" class="gemini-btn" style="margin-top: 1rem;">🔊 Read Aloud</button>`;
+                    resultsContainer.classList.remove('hidden');
+                }
+            });
+
+            document.getElementById('get-image-btn').addEventListener('click', async (e) => {
+                const prompt = `A stunning, photorealistic artistic impression of the surface of the planet ${activePlanetName}, cinematic lighting, 8k, detailed.`;
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`;
+                const payload = { instances: [{ prompt: prompt }], parameters: { "sampleCount": 1 } };
+                const result = await callApi(apiUrl, payload, e.currentTarget);
+                if (result && result.predictions?.[0]?.bytesBase64Encoded) {
+                    const imageUrl = `data:image/png;base64,${result.predictions[0].bytesBase64Encoded}`;
+                    resultsContainer.innerHTML = `<img src="${imageUrl}" alt="Generated image of ${activePlanetName}" style="width: 100%; border-radius: 0.5rem;">`;
+                    resultsContainer.classList.remove('hidden');
+                }
+            });
+
+            document.getElementById('ask-btn').addEventListener('click', async (e) => {
+                const input = document.getElementById('ask-input');
+                if (input.value.trim() === '') return;
+                const prompt = `In the context of the planet ${activePlanetName}, answer this question: "${input.value}"`;
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
+                const result = await callApi(apiUrl, payload, e.currentTarget);
+                if (result && result.candidates?.[0]?.content?.parts?.[0]?.text) {
+                    resultsContainer.innerHTML = result.candidates[0].content.parts[0].text.replace(/\n/g, '<br>');
+                    resultsContainer.classList.remove('hidden');
+                }
+                input.value = '';
+            });
+
+            document.getElementById('get-stats-btn').addEventListener('click', async (e) => {
+                const prompt = `Generate key statistics for the planet ${activePlanetName}.`;
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                const payload = {
+                    contents: [{ role: "user", parts: [{ text: prompt }] }],
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: {
+                            type: "OBJECT",
+                            properties: {
+                                "diameter_km": { "type": "NUMBER" },
+                                "mass_10e24_kg": { "type": "NUMBER" },
+                                "avg_temp_celsius": { "type": "NUMBER" }
+                            }
+                        }
+                    }
+                };
+                const result = await callApi(apiUrl, payload, e.currentTarget);
+                if (result && result.candidates?.[0]?.content?.parts?.[0]?.text) {
+                    const stats = JSON.parse(result.candidates[0].content.parts[0].text);
+                    statsContainer.innerHTML = `
+                        <table style="width: 100%; text-align: left;">
+                            <tbody>
+                                <tr style="border-bottom: 1px solid #374151;"><td style="padding: 0.25rem 0.5rem 0.25rem 0;">Diameter:</td><td>${stats.diameter_km.toLocaleString()} km</td></tr>
+                                <tr style="border-bottom: 1px solid #374151;"><td style="padding: 0.25rem 0.5rem 0.25rem 0;">Mass:</td><td>${stats.mass_10e24_kg} x 10²⁴ kg</td></tr>
+                                <tr><td style="padding: 0.25rem 0.5rem 0.25rem 0;">Avg. Temp:</td><td>${stats.avg_temp_celsius}°C</td></tr>
+                            </tbody>
+                        </table>`;
+                    statsContainer.classList.remove('hidden');
+                }
+            });
+
+            // Start the animation loop
+            animate();
+
+            // Initial setup
+            focusOnPlanet('sun', 'The star at the center of our solar system.');
+        });
+    </script>
+
+</body>
+</html>
