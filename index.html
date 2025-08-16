@@ -34,8 +34,10 @@
       (function() {
         function checkWebGL() {
           try {
-            var canvas = document.createElement('canvas');
-            var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+            // Create a temporary canvas for testing, not interfering with the main one
+            var testCanvas = document.createElement('canvas');
+            var gl = testCanvas.getContext('webgl') || testCanvas.getContext('experimental-webgl');
+            testCanvas.remove(); // Clean up
             return !!gl;
           } catch (e) {
             return false;

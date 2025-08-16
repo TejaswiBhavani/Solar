@@ -58,8 +58,9 @@ const AdvancedScene: React.FC<AdvancedSceneProps> = ({ onPlanetFocus }) => {
 
     // Lighting
     const pointLight = new THREE.PointLight(0xffffff, 2, 1000);
+    pointLight.position.set(0, 0, 0); // Position at sun
     scene.add(pointLight);
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6); // Increase ambient light for better visibility
     scene.add(ambientLight);
 
     // Dynamic Starfield
