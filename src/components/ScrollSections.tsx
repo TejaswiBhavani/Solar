@@ -47,21 +47,21 @@ const ScrollSections: React.FC = () => {
   ];
 
   return (
-    <main>
+    <main className="pointer-events-none">
       {sections.map((section, index) => (
         <section
           key={section.planet}
-          className="content-section relative z-10 h-screen flex flex-col justify-center items-center text-center px-8"
+          className="content-section relative z-10 h-screen flex flex-col justify-center items-center text-center px-8 pointer-events-none"
           data-planet={section.planet}
           data-description={section.description}
-          style={{ opacity: index === 0 ? 0 : 0 }}
+          style={{ opacity: index === 0 ? 1 : 0 }}
         >
           {index === 0 ? (
             <>
               <h1 className="intro-title text-5xl md:text-8xl font-black uppercase tracking-tighter text-glow mb-6">
                 {section.title}
               </h1>
-              <p className="intro-subtitle text-lg md:text-2xl text-gray-400 mt-4 max-w-2xl opacity-0">
+              <p className="intro-subtitle text-lg md:text-2xl text-gray-400 mt-4 max-w-2xl">
                 {section.subtitle}
               </p>
             </>

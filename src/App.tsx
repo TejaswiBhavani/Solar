@@ -83,7 +83,7 @@ const App: React.FC = () => {
   }, []);
 
   return (
-    <div className="bg-black min-h-screen text-white overflow-x-hidden">
+    <div className="bg-transparent min-h-screen text-white overflow-x-hidden relative">
       {/* Advanced 3D Scene */}
       <AdvancedScene onPlanetFocus={handlePlanetFocus} />
       
