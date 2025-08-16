@@ -2,7 +2,8 @@ import React, { useRef, useEffect, useMemo } from 'react';
 import * as THREE from 'three';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import anime from 'animejs';
+// Note: anime.js v4 has a different API - imports temporarily removed  
+// import { animate } from 'animejs';
 
 // Register GSAP plugins
 gsap.registerPlugin(ScrollTrigger);
@@ -213,16 +214,20 @@ const AdvancedScene: React.FC<AdvancedSceneProps> = ({ onPlanetFocus }) => {
       if (targetObject) {
         activePlanetNameRef.current = planetName.charAt(0).toUpperCase() + planetName.slice(1);
         targetObject.getWorldPosition(targetRef.current);
-        const offset = planetName === 'sun' ? 50 : (targetObject.geometry.parameters.radius * 10);
+        const offset = planetName === 'sun' ? 50 : 
+          (targetObject instanceof THREE.Mesh && targetObject.geometry instanceof THREE.SphereGeometry 
+            ? targetObject.geometry.parameters.radius * 10 
+            : 20);
 
-        // Starfield pulse effect
+        // Starfield pulse effect using GSAP as alternative
         if (starMeshRef.current) {
-          anime({ 
-            targets: starMeshRef.current.scale, 
-            z: [1, 150], 
-            duration: 500, 
-            easing: 'easeInQuad', 
-            direction: 'alternate' 
+          // Using GSAP instead of anime.js for now
+          gsap.to(starMeshRef.current.scale, {
+            z: 150,
+            duration: 0.5,
+            ease: "power2.in",
+            yoyo: true,
+            repeat: 1
           });
         }
 
@@ -253,27 +258,29 @@ const AdvancedScene: React.FC<AdvancedSceneProps> = ({ onPlanetFocus }) => {
 
       const sections = document.querySelectorAll('.content-section');
 
-      gsap.timeline()
-        .to(cameraRef.current.position, { 
-          x: 0, y: 20, z: 100, 
-          duration: 3, 
-          ease: "power3.inOut", 
-          onUpdate: () => cameraRef.current?.lookAt(sceneRef.current!.position) 
-        })
-        .to(".intro-title .letter", { 
-          opacity: 1, 
-          y: 0, 
-          stagger: 0.07, 
-          ease: "expo.out" 
-        }, "-=2.5")
-        .to(".intro-subtitle", { opacity: 1, duration: 1 }, "-=1.5")
-        .to(sections[0], { opacity: 1, duration: 1 }, 0)
-        .then(() => {
-          focusOnPlanet('sun', 'The star at the center of our solar system.');
-          for (let i = 1; i < sections.length; i++) {
-            (sections[i] as HTMLElement).style.opacity = '1';
-          }
-        });
+      if (cameraRef.current) {
+        gsap.timeline()
+          .to(cameraRef.current.position, { 
+            x: 0, y: 20, z: 100, 
+            duration: 3, 
+            ease: "power3.inOut", 
+            onUpdate: () => cameraRef.current?.lookAt(sceneRef.current!.position) 
+          })
+          .to(".intro-title .letter", { 
+            opacity: 1, 
+            y: 0, 
+            stagger: 0.07, 
+            ease: "expo.out" 
+          }, "-=2.5")
+          .to(".intro-subtitle", { opacity: 1, duration: 1 }, "-=1.5")
+          .to(sections[0], { opacity: 1, duration: 1 }, 0)
+          .then(() => {
+            focusOnPlanet('sun', 'The star at the center of our solar system.');
+            for (let i = 1; i < sections.length; i++) {
+              (sections[i] as HTMLElement).style.opacity = '1';
+            }
+          });
+      }
     }
 
     // Setup scroll triggers
@@ -331,7 +338,13 @@ const AdvancedScene: React.FC<AdvancedSceneProps> = ({ onPlanetFocus }) => {
     (window as any).toggleFreeRoam = () => {
       isFreeRoamRef.current = !isFreeRoamRef.current;
       document.body.classList.toggle('free-roam-active', isFreeRoamRef.current);
-      ScrollTrigger.getAll().forEach(t => t.enabled = !isFreeRoamRef.current);
+      ScrollTrigger.getAll().forEach(t => {
+        if (isFreeRoamRef.current) {
+          t.disable();
+        } else {
+          t.enable();
+        }
+      });
       document.body.style.overflow = isFreeRoamRef.current ? 'hidden' : 'auto';
       
       if (!isFreeRoamRef.current) {
