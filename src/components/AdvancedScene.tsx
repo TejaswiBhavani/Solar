@@ -219,18 +219,16 @@ const AdvancedScene: React.FC<AdvancedSceneProps> = ({ onPlanetFocus }) => {
             ? targetObject.geometry.parameters.radius * 10 
             : 20);
 
-        // Starfield pulse effect
+        // Starfield pulse effect using GSAP as alternative
         if (starMeshRef.current) {
-          // Note: anime.js v4 API has changed significantly  
-          // TODO: Update animation code to work with anime.js v4
-          /*
-          createAnimatable(starMeshRef.current.scale, { 
-            z: [1, 150], 
-            duration: 500, 
-            easing: 'easeInQuad', 
-            direction: 'alternate' 
+          // Using GSAP instead of anime.js for now
+          gsap.to(starMeshRef.current.scale, {
+            z: 150,
+            duration: 0.5,
+            ease: "power2.in",
+            yoyo: true,
+            repeat: 1
           });
-          */
         }
 
         // Camera movement

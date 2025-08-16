@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-// Note: anime.js v4 has a different API - imports temporarily removed
-// import { createAnimatable, stagger } from 'animejs';
+// Simple alternative animation using CSS transitions for now
+// TODO: Implement proper anime.js v4 API usage
 
 interface AIPanelProps {
   isVisible: boolean;
@@ -28,21 +28,20 @@ const AIPanel: React.FC<AIPanelProps> = ({
 
   useEffect(() => {
     if (isVisible && panelRef.current) {
-      // Panel entrance animation  
-      // Note: anime.js v4 API has changed significantly
-      // TODO: Update animation code to work with anime.js v4
-      /*
-      createAnimatable('.panel-child', { 
-        opacity: 0, 
-        translateY: 10,
-        duration: 0
+      // Panel entrance animation using CSS transitions as fallback
+      // TODO: Implement proper anime.js v4 API usage
+      const panelChildren = document.querySelectorAll('.panel-child');
+      panelChildren.forEach((element, index) => {
+        const el = element as HTMLElement;
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(10px)';
+        el.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        
+        setTimeout(() => {
+          el.style.opacity = '1';
+          el.style.transform = 'translateY(0)';
+        }, 200 + index * 100);
       });
-      createAnimatable('.panel-child', { 
-        opacity: [0, 1], 
-        translateY: [10, 0], 
-        delay: stagger(100, { start: 200 }) 
-      });
-      */
     }
   }, [isVisible]);
 
