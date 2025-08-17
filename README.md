@@ -72,6 +72,38 @@ pnpm preview
 - **Build Tool**: Vite
 - **Icons**: Custom SVG components
 
+## 🔧 Troubleshooting
+
+### 3D Scene Not Appearing
+
+If you only see the text overlay but no 3D solar system:
+
+- **Check WebGL support**: Ensure hardware acceleration is enabled in your browser
+- **Console errors**: Open browser DevTools (F12) and check for any error messages
+- **Browser compatibility**: Try a different browser (Chrome, Firefox, Safari, Edge)
+- **Graphics drivers**: Update your graphics card drivers
+
+### Performance Issues
+
+- Reduce browser zoom level to 100%
+- Close other GPU-intensive browser tabs
+- Try lowering your screen resolution temporarily
+- Check if hardware acceleration is enabled
+
+### Controls Not Working
+
+- Exit Free-Roam mode if active (bottom-right button)
+- Ensure the 3D canvas is receiving mouse events
+- Try refreshing the page if scroll interactions aren't working
+
+### WebGL Errors
+
+If you see a "WebGL Not Supported" message:
+- **Chrome**: Go to `chrome://settings/system` → Enable "Use hardware acceleration when available"
+- **Firefox**: Go to `about:config` → Set `webgl.force-enabled` to `true`
+- **Safari**: Enable "WebGL" in Develop menu
+- Update your browser to the latest version
+
 ## 📁 Project Structure
 
 ```

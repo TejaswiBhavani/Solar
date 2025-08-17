@@ -10,7 +10,25 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
   </head>
   <body>
+    <!-- WebGL unsupported fallback -->
+    <div id="webgl-fallback" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #000; color: #fff; z-index: 9999; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 2rem; font-family: Inter, system-ui, sans-serif;">
+      <h1 style="font-size: 2rem; margin-bottom: 1rem;">WebGL Not Supported</h1>
+      <p style="font-size: 1.1rem; margin-bottom: 1rem; max-width: 600px; line-height: 1.6;">
+        This interactive solar system requires WebGL support to display 3D graphics. Please:
+      </p>
+      <ul style="text-align: left; font-size: 1rem; margin-bottom: 2rem; max-width: 500px;">
+        <li style="margin-bottom: 0.5rem;">• Enable hardware acceleration in your browser settings</li>
+        <li style="margin-bottom: 0.5rem;">• Update your browser to the latest version</li>
+        <li style="margin-bottom: 0.5rem;">• Update your graphics drivers</li>
+        <li style="margin-bottom: 0.5rem;">• Try using a different browser (Chrome, Firefox, Safari, Edge)</li>
+      </ul>
+      <p style="color: #888; font-size: 0.9rem;">
+        For Chrome: Go to chrome://settings/system and enable "Use hardware acceleration when available"
+      </p>
+    </div>
+
     <div id="root"></div>
+    
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
