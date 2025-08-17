@@ -15,7 +15,7 @@ A modern, interactive 3D solar system built with React, Three.js, and Framer Mot
 
 ### Prerequisites
 
-- Node.js 18+ 
+- Node.js 18+
 - npm or pnpm
 
 ### Installation
@@ -55,6 +55,17 @@ Preview the production build:
 npm run preview
 # or
 pnpm preview
+
+### Optional: Gemini API setup for AI panel
+
+Create a `.env.local` in the project root:
+
+```
+VITE_GEMINI_API_KEY=your_key_here
+```
+
+Restart the dev server after adding the key. Without a key, AI buttons will be disabled and show a tooltip explaining how to enable.
+
 ```
 
 ## 🎮 Controls

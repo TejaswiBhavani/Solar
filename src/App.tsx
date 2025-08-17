@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import AdvancedScene from './components/AdvancedScene';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+gsap.registerPlugin(ScrollTrigger);
+import SolarScene from './components/SolarScene';
 import ScrollSections from './components/ScrollSections';
 import AIPanel from './components/AIPanel';
 import Controls from './components/Controls';
@@ -17,9 +20,22 @@ const App: React.FC = () => {
     setShowPanelButton(true);
   };
 
+  const [isFreeRoam, setIsFreeRoam] = useState(false);
+
   const handleToggleFreeRoam = () => {
-    // Free roam logic is handled in AdvancedScene
+    setIsFreeRoam(prev => !prev);
   };
+
+  // When free-roam toggles, enable/disable ScrollTrigger and lock body scroll
+  useEffect(() => {
+    const enabled = !isFreeRoam
+    try {
+      ScrollTrigger.getAll().forEach(t => enabled ? t.enable() : t.disable())
+    } catch (e) {
+      // no-op
+    }
+    document.body.style.overflow = isFreeRoam ? 'hidden' : 'auto'
+  }, [isFreeRoam])
 
   const handleOpenPanel = () => {
     setIsPanelVisible(true);
@@ -84,14 +100,15 @@ const App: React.FC = () => {
 
   return (
     <div className="bg-transparent min-h-screen text-white overflow-x-hidden relative">
-      {/* Advanced 3D Scene */}
-      <AdvancedScene onPlanetFocus={handlePlanetFocus} />
+      {/* Anime.js + Three.js Scene (modular) */}
+      <SolarScene onPlanetFocus={handlePlanetFocus} isFreeRoam={isFreeRoam} />
       
-      {/* Scroll Sections */}
-      <ScrollSections />
+  {/* Scroll Sections */}
+  <ScrollSections onEnter={handlePlanetFocus} />
       
       {/* Controls */}
       <Controls
+        isFreeRoam={isFreeRoam}
         onToggleFreeRoam={handleToggleFreeRoam}
         onOpenPanel={handleOpenPanel}
         showPanelButton={showPanelButton}

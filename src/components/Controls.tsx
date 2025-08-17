@@ -1,21 +1,19 @@
-import React, { useState } from 'react';
+import React from 'react';
 
 interface ControlsProps {
+  isFreeRoam: boolean;
   onToggleFreeRoam: () => void;
   onOpenPanel: () => void;
   showPanelButton: boolean;
 }
 
-const Controls: React.FC<ControlsProps> = ({ 
-  onToggleFreeRoam, 
-  onOpenPanel, 
-  showPanelButton 
+const Controls: React.FC<ControlsProps> = ({
+  isFreeRoam,
+  onToggleFreeRoam,
+  onOpenPanel,
+  showPanelButton
 }) => {
-  const [isFreeRoam, setIsFreeRoam] = useState(false);
-
   const handleToggleFreeRoam = () => {
-    const newFreeRoamState = (window as any).toggleFreeRoam?.() ?? false;
-    setIsFreeRoam(newFreeRoamState);
     onToggleFreeRoam();
   };
 

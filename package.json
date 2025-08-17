@@ -36,7 +36,5 @@
     "three": "^0.179.1",
     "typescript": "^5.9.2",
     "vite": "^7.1.2"
-  },
-  "devDependencies": {
   }
 }

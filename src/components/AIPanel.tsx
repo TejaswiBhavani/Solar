@@ -23,8 +23,8 @@ const AIPanel: React.FC<AIPanelProps> = ({
   const panelRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
 
-  // API key - users need to add their own
-  const apiKey = "";
+  // API key from Vite env; when absent, AI actions are disabled
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY || "";
 
   useEffect(() => {
     if (isVisible && panelRef.current) {
@@ -187,31 +187,35 @@ const AIPanel: React.FC<AIPanelProps> = ({
         <p className="text-gray-400 mt-2 panel-child mb-4">{planetDescription}</p>
         
         <div className="flex flex-wrap gap-2 mt-4 panel-child mb-4">
-          <button 
+          <button
             className="gemini-btn"
             onClick={handleGetFacts}
-            disabled={isLoading}
+            disabled={isLoading || !apiKey}
+            title={!apiKey ? 'Add VITE_GEMINI_API_KEY in .env.local to enable' : undefined as any}
           >
             ✨ Facts
           </button>
-          <button 
+          <button
             className="gemini-btn"
             onClick={handleGetLog}
-            disabled={isLoading}
+            disabled={isLoading || !apiKey}
+            title={!apiKey ? 'Add VITE_GEMINI_API_KEY in .env.local to enable' : undefined as any}
           >
             📜 Log
           </button>
-          <button 
+          <button
             className="gemini-btn"
             onClick={handleGetImage}
-            disabled={isLoading}
+            disabled={isLoading || !apiKey}
+            title={!apiKey ? 'Add VITE_GEMINI_API_KEY in .env.local to enable' : undefined as any}
           >
             🎨 Image
           </button>
-          <button 
+          <button
             className="gemini-btn"
             onClick={handleGetStats}
-            disabled={isLoading}
+            disabled={isLoading || !apiKey}
+            title={!apiKey ? 'Add VITE_GEMINI_API_KEY in .env.local to enable' : undefined as any}
           >
             📊 Stats
           </button>
@@ -229,7 +233,8 @@ const AIPanel: React.FC<AIPanelProps> = ({
           <button
             className="gemini-btn rounded-l-none rounded-r-full mt-0"
             onClick={handleAsk}
-            disabled={isLoading}
+            disabled={isLoading || !apiKey}
+            title={!apiKey ? 'Add VITE_GEMINI_API_KEY in .env.local to enable' : undefined as any}
           >
             Ask
           </button>

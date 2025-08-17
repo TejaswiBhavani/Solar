@@ -26,15 +26,43 @@ const AdvancedScene: React.FC<AdvancedSceneProps> = ({ onPlanetFocus }) => {
   const isFreeRoamRef = useRef(false);
   const activePlanetNameRef = useRef('');
 
-  // Planet data
-  const planetsData = useMemo(() => [
-    { name: 'mercury', size: 1, distance: 20, speed: 0.004, color: 0x8c8c8c },
-    { name: 'venus', size: 2, distance: 35, speed: 0.002, color: 0xffa500 },
-    { name: 'earth', size: 2.2, distance: 55, speed: 0.001, color: 0x0077ff, hasMoon: true },
-    { name: 'mars', size: 1.5, distance: 75, speed: 0.0008, color: 0xff4500 },
-    { name: 'jupiter', size: 6, distance: 120, speed: 0.0004, color: 0xd2b48c },
-    { name: 'saturn', size: 5, distance: 180, speed: 0.0002, color: 0xf0e68c, hasRings: true }
-  ], []);
+  // Scales (balanced for visibility while keeping realistic proportions)
+  const distanceScale = 30; // units per AU
+  const earthRadiusUnits = 1.5; // Earth radius in scene units
+  const baseAngularSpeed = 0.0012; // base orbital angular speed per frame
+
+  type RawPlanet = {
+    name: string;
+    radiusEarth: number; // radius relative to Earth
+    distanceAU: number;  // semi-major axis in AU
+    periodYears: number; // orbital period in Earth years
+    color: number;
+    hasMoon?: boolean;
+    hasRings?: boolean;
+  };
+
+  // Planet data (realistic ratios for size, distance, period)
+  const planetsData = useMemo(() => {
+    const raw: RawPlanet[] = [
+      { name: 'mercury', radiusEarth: 0.383, distanceAU: 0.39, periodYears: 0.241, color: 0x8c8c8c },
+      { name: 'venus',   radiusEarth: 0.949, distanceAU: 0.72, periodYears: 0.615, color: 0xffa500 },
+      { name: 'earth',   radiusEarth: 1.0,   distanceAU: 1.00, periodYears: 1.000, color: 0x2c7be5, hasMoon: true },
+      { name: 'mars',    radiusEarth: 0.532, distanceAU: 1.52, periodYears: 1.881, color: 0xff4500 },
+      { name: 'jupiter', radiusEarth: 11.21, distanceAU: 5.20, periodYears: 11.86, color: 0xd2b48c },
+      { name: 'saturn',  radiusEarth: 9.45,  distanceAU: 9.58, periodYears: 29.46, color: 0xf0e68c, hasRings: true },
+    ];
+
+    return raw.map(p => ({
+      name: p.name,
+      // Keep small bodies visible with a minimum size
+      size: Math.max(0.6, earthRadiusUnits * p.radiusEarth),
+      distance: distanceScale * p.distanceAU,
+      speed: baseAngularSpeed / p.periodYears,
+      color: p.color,
+      hasMoon: p.hasMoon,
+      hasRings: p.hasRings,
+    }));
+  }, []);
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -117,12 +145,12 @@ const AdvancedScene: React.FC<AdvancedSceneProps> = ({ onPlanetFocus }) => {
 
       if (p.hasRings) {
         const ring = new THREE.Mesh(
-          new THREE.RingGeometry(p.size + 2, p.size + 5, 64),
-          new THREE.MeshBasicMaterial({ 
-            color: 0xaaaaaa, 
-            side: THREE.DoubleSide, 
-            transparent: true, 
-            opacity: 0.6 
+          new THREE.RingGeometry(p.size * 1.2, p.size * 2.3, 128),
+          new THREE.MeshBasicMaterial({
+            color: 0xaaaaaa,
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: 0.6
           })
         );
         ring.rotation.x = -Math.PI * 0.4;
@@ -136,7 +164,8 @@ const AdvancedScene: React.FC<AdvancedSceneProps> = ({ onPlanetFocus }) => {
         );
         const moonOrbit = new THREE.Object3D();
         moonOrbit.add(moon);
-        moon.position.x = p.size + 2;
+        // Exaggerate moon orbit for visibility
+        moon.position.x = Math.max(p.size * 3, 2);
         planet.add(moonOrbit);
         (planet as any).moonOrbit = moonOrbit;
       }
@@ -161,19 +190,21 @@ const AdvancedScene: React.FC<AdvancedSceneProps> = ({ onPlanetFocus }) => {
     planetsRef.current = planets;
 
     // Asteroid Belt
-    const asteroidCount = 1500;
+    const asteroidCount = 2000;
     const asteroids = new THREE.InstancedMesh(
       new THREE.DodecahedronGeometry(0.1, 0),
       new THREE.MeshStandardMaterial({ color: 0xaaaaaa }),
       asteroidCount
     );
+    const innerBelt = distanceScale * 2.2; // ~2.2 AU
+    const outerBelt = distanceScale * 3.2; // ~3.2 AU
     const dummy = new THREE.Object3D();
     for (let i = 0; i < asteroidCount; i++) {
       const angle = Math.random() * Math.PI * 2;
-      const radius = 90 + Math.random() * 15;
+      const radius = innerBelt + Math.random() * (outerBelt - innerBelt);
       dummy.position.set(
-        Math.cos(angle) * radius, 
-        (Math.random() - 0.5) * 2, 
+        Math.cos(angle) * radius,
+        (Math.random() - 0.5) * 2,
         Math.sin(angle) * radius
       );
       dummy.rotation.set(Math.random(), Math.random(), Math.random());
@@ -229,9 +260,9 @@ const AdvancedScene: React.FC<AdvancedSceneProps> = ({ onPlanetFocus }) => {
       if (targetObject) {
         activePlanetNameRef.current = planetName.charAt(0).toUpperCase() + planetName.slice(1);
         targetObject.getWorldPosition(targetRef.current);
-        const offset = planetName === 'sun' ? 50 : 
-          (targetObject instanceof THREE.Mesh && targetObject.geometry instanceof THREE.SphereGeometry 
-            ? targetObject.geometry.parameters.radius * 10 
+        const offset = planetName === 'sun' ? 50 :
+          (targetObject instanceof THREE.Mesh && targetObject.geometry instanceof THREE.SphereGeometry
+            ? targetObject.geometry.parameters.radius * 6
             : 20);
 
         // Starfield pulse effect using GSAP as alternative

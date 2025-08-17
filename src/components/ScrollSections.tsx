@@ -1,6 +1,13 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+gsap.registerPlugin(ScrollTrigger);
 
-const ScrollSections: React.FC = () => {
+type Props = {
+  onEnter?: (planet: string, description: string) => void
+}
+
+const ScrollSections: React.FC<Props> = ({ onEnter }) => {
   const sections = [
     {
       planet: 'sun',
@@ -45,6 +52,33 @@ const ScrollSections: React.FC = () => {
       subtitle: 'The jewel of the solar system'
     }
   ];
+
+  useEffect(() => {
+    const els = document.querySelectorAll('.content-section') as NodeListOf<HTMLElement>
+    els.forEach((el) => {
+      ScrollTrigger.create({
+        trigger: el,
+        start: 'top center',
+        end: 'bottom center',
+        onEnter: () => {
+          el.style.opacity = '1'
+          const planet = el.dataset.planet
+          const desc = el.dataset.description || ''
+          if (planet) onEnter?.(planet, desc)
+        },
+        onEnterBack: () => {
+          el.style.opacity = '1'
+          const planet = el.dataset.planet
+          const desc = el.dataset.description || ''
+          if (planet) onEnter?.(planet, desc)
+        }
+      })
+    })
+
+    return () => {
+      ScrollTrigger.getAll().forEach(t => t.kill())
+    }
+  }, [onEnter])
 
   return (
     <main className="pointer-events-none">
