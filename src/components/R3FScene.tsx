@@ -75,14 +75,14 @@ function Planet({ def, onClick }: { def: PlanetDef; onClick?: (name: string, des
         }}
         frustumCulled
       >
-        <sphereGeometry args={[def.size, Math.min(48, Math.max(16, Math.floor(def.size * 8))), 32]} />
+        <sphereGeometry args={[def.size, Math.min(24, Math.max(12, Math.floor(def.size * 4))), 16]} />
         <primitive object={planetMat} attach="material" />
       </mesh>
 
       {/* Saturn rings */}
       {def.hasRings && def.distance > 0 && (
         <mesh position={[def.distance, 0, 0]} rotation={[-Math.PI * 0.4, 0, 0]} frustumCulled>
-          <ringGeometry args={[def.size * 1.2, def.size * 2.2, 96]} />
+          <ringGeometry args={[def.size * 1.2, def.size * 2.2, 48]} />
           <primitive object={ringMat} attach="material" />
         </mesh>
       )}
@@ -91,7 +91,7 @@ function Planet({ def, onClick }: { def: PlanetDef; onClick?: (name: string, des
       {def.hasMoon && (
         <group ref={moonOrbitRef} position={[def.distance, 0, 0]}>
           <mesh position={[Math.max(def.size * 3, 2), 0, 0]} frustumCulled>
-            <sphereGeometry args={[Math.max(def.size * 0.27, 0.3), 16, 16]} />
+            <sphereGeometry args={[Math.max(def.size * 0.27, 0.3), 12, 12]} />
             <meshStandardMaterial color="#cccccc" />
           </mesh>
         </group>
@@ -107,14 +107,14 @@ function Sun({ size }: { size: number }) {
   })
   return (
     <mesh ref={sunRef} position={[0, 0, 0]}>
-      <sphereGeometry args={[size, 64, 64]} />
+      <sphereGeometry args={[size, 32, 32]} />
       <meshStandardMaterial emissive="#ffcc33" emissiveIntensity={2} color="#ffcc33" />
     </mesh>
   )
 }
 
 function AsteroidBelt() {
-  const count = 600
+  const count = 300
   const inner = distanceScale * 2.2
   const outer = distanceScale * 3.2
 
@@ -166,16 +166,16 @@ export default function R3FScene({ onPlanetFocus, isFreeRoam = false }: R3FScene
   return (
     <Canvas
       camera={{ position: [0, 60, 220], fov: 60 }}
-      gl={{ antialias: true, alpha: true }}
-      dpr={[1, 2]}
+      gl={{ antialias: false, alpha: true }}
+      dpr={[1, 1]}
       className="fixed top-0 left-0 w-full h-full -z-10"
     >
-      {/* Lighting */}
-      <ambientLight intensity={0.35} />
-      <pointLight position={[0, 0, 0]} intensity={2} distance={2000} />
+      {/* Lighting (simplified for free plan) */}
+      <ambientLight intensity={0.4} />
+      <pointLight position={[0, 0, 0]} intensity={1.8} distance={1500} />
 
-  {/* Background stars (reduced for lower-end machines) */}
-  <Stars radius={2000} depth={50} count={2000} factor={4} saturation={0} fade speed={0} />
+  {/* Background stars (optimized for free plan hosting) */}
+  <Stars radius={1500} depth={40} count={800} factor={3} saturation={0} fade speed={0} />
 
       {/* Bodies */}
       <Sun size={Math.max(8, sun.size * 0.1)} />

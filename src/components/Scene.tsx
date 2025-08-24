@@ -15,7 +15,7 @@ const Sun = () => {
 
   return (
     <mesh ref={sunRef} position={[0, 0, 0]}>
-      <sphereGeometry args={[10, 64, 64]} />
+      <sphereGeometry args={[10, 32, 32]} />
       <meshStandardMaterial
         emissive="#ffcc33"
         emissiveIntensity={2}
@@ -56,7 +56,7 @@ const Planet: React.FC<PlanetProps> = ({ name, size, distance, speed, color, til
         rotation={[tilt, 0, 0]}
         name={name}
       >
-        <sphereGeometry args={[size, 32, 32]} />
+        <sphereGeometry args={[size, 16, 16]} />
         <meshStandardMaterial color={color} />
       </mesh>
     </group>
@@ -79,7 +79,7 @@ const Ring: React.FC<{ innerRadius: number; outerRadius: number; distance: numbe
   });
 
   const ringGeometry = useMemo(() => {
-    const geometry = new THREE.RingGeometry(innerRadius, outerRadius, 64);
+    const geometry = new THREE.RingGeometry(innerRadius, outerRadius, 32);
     return geometry;
   }, [innerRadius, outerRadius]);
 
@@ -100,7 +100,7 @@ const Ring: React.FC<{ innerRadius: number; outerRadius: number; distance: numbe
 
 // Starfield component
 const Starfield = () => {
-  const starCount = 5000;
+  const starCount = 1000;
   const positions = useMemo(() => {
     const pos = new Float32Array(starCount * 3);
     for (let i = 0; i < starCount * 3; i++) {
@@ -136,8 +136,8 @@ const Scene: React.FC = () => {
   return (
     <Canvas
       camera={{ position: [0, 80, 250], fov: 75 }}
-      gl={{ alpha: true, antialias: true }}
-      dpr={[1, 2]}
+      gl={{ alpha: true, antialias: false }}
+      dpr={[1, 1]}
       className="fixed top-0 left-0 w-full h-full -z-10"
     >
       {/* Lighting */}

@@ -91,7 +91,7 @@ const AdvancedScene: React.FC<AdvancedSceneProps> = ({ onPlanetFocus }) => {
     }
 
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1));
 
     // Store refs
     sceneRef.current = scene;
@@ -105,9 +105,9 @@ const AdvancedScene: React.FC<AdvancedSceneProps> = ({ onPlanetFocus }) => {
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.6); // Increase ambient light for better visibility
     scene.add(ambientLight);
 
-    // Dynamic Starfield
+    // Dynamic Starfield (optimized for free plan)
     const starGeometry = new THREE.BufferGeometry();
-    const starCount = 20000;
+    const starCount = 5000;
     const posArray = new Float32Array(starCount * 3);
     for (let i = 0; i < starCount * 3; i++) {
       posArray[i] = (Math.random() - 0.5) * 4000;
@@ -118,9 +118,9 @@ const AdvancedScene: React.FC<AdvancedSceneProps> = ({ onPlanetFocus }) => {
     scene.add(starMesh);
     starMeshRef.current = starMesh;
 
-    // Create Sun
+    // Create Sun (optimized for free plan)
     const sun = new THREE.Mesh(
-      new THREE.SphereGeometry(10, 64, 64),
+      new THREE.SphereGeometry(10, 32, 32),
       new THREE.MeshStandardMaterial({
         emissive: 0xffcc33,
         emissiveIntensity: 2
@@ -134,7 +134,7 @@ const AdvancedScene: React.FC<AdvancedSceneProps> = ({ onPlanetFocus }) => {
     const planets: any[] = [];
     planetsData.forEach(p => {
       const planet = new THREE.Mesh(
-        new THREE.SphereGeometry(p.size, 32, 32),
+        new THREE.SphereGeometry(p.size, 16, 16),
         new THREE.MeshStandardMaterial({ color: p.color })
       );
       planet.name = p.name;
@@ -145,7 +145,7 @@ const AdvancedScene: React.FC<AdvancedSceneProps> = ({ onPlanetFocus }) => {
 
       if (p.hasRings) {
         const ring = new THREE.Mesh(
-          new THREE.RingGeometry(p.size * 1.2, p.size * 2.3, 128),
+          new THREE.RingGeometry(p.size * 1.2, p.size * 2.3, 64),
           new THREE.MeshBasicMaterial({
             color: 0xaaaaaa,
             side: THREE.DoubleSide,
@@ -159,7 +159,7 @@ const AdvancedScene: React.FC<AdvancedSceneProps> = ({ onPlanetFocus }) => {
 
       if (p.hasMoon) {
         const moon = new THREE.Mesh(
-          new THREE.SphereGeometry(p.size * 0.27, 32, 32),
+          new THREE.SphereGeometry(p.size * 0.27, 12, 12),
           new THREE.MeshStandardMaterial({ color: 0xcccccc })
         );
         const moonOrbit = new THREE.Object3D();
@@ -173,9 +173,9 @@ const AdvancedScene: React.FC<AdvancedSceneProps> = ({ onPlanetFocus }) => {
       scene.add(orbit);
       planets.push({ mesh: planet, orbit: orbit, speed: p.speed });
 
-      // Orbit lines
+      // Orbit lines (reduced segments for performance)
       const orbitLine = new THREE.Mesh(
-        new THREE.RingGeometry(p.distance - 0.1, p.distance + 0.1, 256),
+        new THREE.RingGeometry(p.distance - 0.1, p.distance + 0.1, 128),
         new THREE.MeshBasicMaterial({ 
           color: 0xffffff, 
           side: THREE.DoubleSide, 

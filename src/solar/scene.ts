@@ -22,8 +22,8 @@ export function initScene(canvas: HTMLCanvasElement, planetsData: PlanetDef[], o
   camera.position.set(0, 30, 220)
 
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true })
-  // limit pixel ratio to reduce GPU/CPU load on laptops
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))
+  // limit pixel ratio to reduce GPU/CPU load (optimized for free plan)
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.0))
   renderer.setSize(window.innerWidth, window.innerHeight)
 
   const controls = new OrbitControls(camera, canvas)
@@ -38,8 +38,8 @@ export function initScene(canvas: HTMLCanvasElement, planetsData: PlanetDef[], o
   const point = new THREE.PointLight(0xffffff, 2, 2000)
   scene.add(point)
 
-  // fewer stars = much lower CPU/GPU work on slower machines
-  const stars = createStars(2000)
+  // fewer stars = much lower CPU/GPU work (optimized for free plan hosting)
+  const stars = createStars(800)
   scene.add(stars)
 
   const sun = createSun(Math.max(8, planetsData[0].size * 0.1))

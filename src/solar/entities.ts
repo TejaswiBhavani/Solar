@@ -3,14 +3,14 @@ import { PlanetDef, PlanetInstance } from './types'
 
 export function createSun(size: number): THREE.Mesh {
   return new THREE.Mesh(
-    new THREE.SphereGeometry(size, 64, 64),
+    new THREE.SphereGeometry(size, 32, 32),
     new THREE.MeshStandardMaterial({ color: 0xffcc33, emissive: 0xffcc33, emissiveIntensity: 2 })
   )
 }
 
 export function createPlanet(def: PlanetDef): PlanetInstance {
   const mesh = new THREE.Mesh(
-    new THREE.SphereGeometry(def.size, Math.min(48, Math.max(16, Math.floor(def.size * 8))), 32),
+    new THREE.SphereGeometry(def.size, Math.min(24, Math.max(12, Math.floor(def.size * 4))), 16),
     new THREE.MeshStandardMaterial({ color: def.color })
   )
   mesh.name = def.name
@@ -21,7 +21,7 @@ export function createPlanet(def: PlanetDef): PlanetInstance {
 
   if (def.hasRings) {
     const ring = new THREE.Mesh(
-      new THREE.RingGeometry(def.size * 1.2, def.size * 2.2, 96),
+      new THREE.RingGeometry(def.size * 1.2, def.size * 2.2, 48),
       new THREE.MeshBasicMaterial({ color: 0xcccccc, side: THREE.DoubleSide, transparent: true, opacity: 0.6 })
     )
     ring.rotation.x = -Math.PI * 0.4
@@ -31,7 +31,7 @@ export function createPlanet(def: PlanetDef): PlanetInstance {
   let moonOrbit: THREE.Object3D | undefined
   if (def.hasMoon) {
     const moon = new THREE.Mesh(
-      new THREE.SphereGeometry(Math.max(def.size * 0.27, 0.3), 16, 16),
+      new THREE.SphereGeometry(Math.max(def.size * 0.27, 0.3), 12, 12),
       new THREE.MeshStandardMaterial({ color: 0xcccccc })
     )
     moonOrbit = new THREE.Object3D()
@@ -45,7 +45,7 @@ export function createPlanet(def: PlanetDef): PlanetInstance {
 
 export function createOrbitRing(distance: number): THREE.Mesh {
   const ring = new THREE.Mesh(
-    new THREE.RingGeometry(distance - 0.15, distance + 0.15, 256),
+    new THREE.RingGeometry(distance - 0.15, distance + 0.15, 128),
     new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, opacity: 0.08 })
   )
   ring.rotation.x = -Math.PI / 2
